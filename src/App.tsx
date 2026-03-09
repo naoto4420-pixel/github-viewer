@@ -5,6 +5,7 @@ interface GitHubUser {
   login: string;
   id: number;
   html_url: string;
+  avatar_url: string;
   public_repos: number;
 }
 
@@ -30,6 +31,11 @@ const App = () => {
           <p className="text-gray-700 mb-2">
             <span className="font-semibold">ユーザー名:</span> {user.login}
           </p>
+          <img 
+            src={user.avatar_url} 
+            alt={`${user.login}のアイコン`} 
+            className="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-gray-200" 
+          />
           <p className="text-gray-700 mb-2">
             <span className="font-semibold">ID:</span> {user.id}
           </p>
