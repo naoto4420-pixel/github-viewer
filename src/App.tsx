@@ -1,18 +1,21 @@
 // src/App.tsx
 import { useState, useEffect } from 'react';
 import UserCard, { type GitHubUser } from './components/UserCard';
-
+import SkeletonCard from './components/SkeletonCard';
 
 const App = () => {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [inputText, setInputText] = useState('');
   const [searchName, setSearchName] = useState('naoto4420-pixel');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       setUser(null);
       setError(null);
+      setIsLoading(true);
+      
       try {
         const response = await fetch(`https://api.github.com/users/${searchName}`);
         if (!response.ok) {
@@ -22,6 +25,8 @@ const App = () => {
         setUser(data);
       } catch (err: any) {
         setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchUserInfo();
@@ -53,21 +58,17 @@ const App = () => {
         </button>
       </div>
 
-      {error && (
+      {isLoading ? 
+        (<SkeletonCard />)
+      : error ? (
         <div className="text-red-500 font-bold mb-4">
           {error}
         </div>
-      )}
-
-      {!error && user ? (
+      )
+      : user ? (
         <UserCard user={user} />
-      ) : (
-        !error && (
-          <div className="flex justify-center items-center h-32">
-            <p className="text-gray-500 animate-pulse">読み込み中（ローディング）...</p>
-          </div>
-        )
-      )}
+      ) 
+      : null }
     </div>
   );
 };
