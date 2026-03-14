@@ -1,10 +1,11 @@
 // src/App.tsx
 import { useState, useEffect } from 'react';
-import UserCard, { type GitHubUser } from './components/UserCard';
+import UserCard, { type GitHubUser, type GitHubRepo } from './components/UserCard';
 import SkeletonCard from './components/SkeletonCard';
 
 const App = () => {
   const [user, setUser] = useState<GitHubUser | null>(null);
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [inputText, setInputText] = useState('');
   const [searchName, setSearchName] = useState('naoto4420-pixel');
   const [error, setError] = useState<string | null>(null);
@@ -17,14 +18,23 @@ const App = () => {
       setIsLoading(true);
       
       try {
-        const response = await fetch(`https://api.github.com/users/${searchName}`);
-        if (!response.ok) {
+        const [userResponse, reposResponse] = await Promise.all([
+          fetch(`https://api.github.com/users/${searchName}`),
+          fetch(`https://api.github.com/users/${searchName}/repos?sort=updated&per_page=3`)
+        ]);
+        if (!userResponse.ok) {
           throw new Error('ユーザーが見つかりませんでした。');
         }
-        const data = await response.json();
+
+        const data = await userResponse.json();
+        const reposData = await reposResponse.json();
         setUser(data);
+        setRepos(reposData);
+
       } catch (err: any) {
         setError(err.message);
+        setUser(null);
+        setRepos([]);
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +76,7 @@ const App = () => {
         </div>
       )
       : user ? (
-        <UserCard user={user} />
+        <UserCard user={user} repos={repos}/>
       ) 
       : null }
     </div>
