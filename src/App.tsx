@@ -8,9 +8,19 @@ const App = () => {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [inputText, setInputText] = useState('');
   const [searchName, setSearchName] = useState('naoto4420-pixel');
+  const [history, setHistory] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // 画面ロード時
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('github-search-history');
+    if (savedHistory) {
+      setHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // 検索実行時
   useEffect(() => {
     const fetchUserInfo = async () => {
       setUser(null);
@@ -31,6 +41,15 @@ const App = () => {
         setUser(data);
         setRepos(reposData);
 
+        setHistory((prevHistory) => {
+          const newHistory = [searchName, ...prevHistory.filter(name => name !== searchName)];
+          const limitedHistory = newHistory.slice(0, 5);
+          
+          localStorage.setItem('github-search-history', JSON.stringify(limitedHistory));
+          
+          return limitedHistory;
+        });
+
       } catch (err: any) {
         setError(err.message);
         setUser(null);
@@ -46,6 +65,11 @@ const App = () => {
     if (inputText.trim() !== '') {
       setSearchName(inputText);
     }
+  };
+
+  const handleHistoryClick = (name: string) => {
+    setInputText(name);
+    setSearchName(name);
   };
 
   return (
@@ -67,6 +91,23 @@ const App = () => {
           検索
         </button>
       </div>
+
+      {history.length > 0 && (
+        <div className="w-full max-w-sm mb-8">
+          <p className="text-sm text-gray-500 mb-2 font-medium">最近の検索:</p>
+          <div className="flex flex-wrap gap-2">
+            {history.map((name) => (
+              <button
+                key={name}
+                onClick={() => handleHistoryClick(name)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-full transition-colors cursor-pointer"
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLoading ? 
         (<SkeletonCard />)
