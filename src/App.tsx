@@ -33,7 +33,13 @@ const App = () => {
           fetch(`https://api.github.com/users/${searchName}/repos?sort=updated&per_page=3`)
         ]);
         if (!userResponse.ok) {
-          throw new Error('ユーザーが見つかりませんでした。');
+          if (userResponse.status === 403 || userResponse.status === 429) {
+            throw new Error('APIの利用制限に達しました。しばらく時間をおいてから再度お試しください。');
+          } else if (userResponse.status === 404) {
+            throw new Error('ユーザーが見つかりませんでした。');
+          } else {
+            throw new Error(`エラーが発生しました（コード: ${userResponse.status}）`);
+          }
         }
 
         const data = await userResponse.json();
